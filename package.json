@@ -7,7 +7,11 @@
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.39.0",
-    "@types/node": "^20.9.0"
+    "@types/node": "^20.9.0",
+    "dotenv": "^16.3.1"
   },
-  "scripts": {}
+  "scripts": {},
+  "dependencies": {
+    "mssql": "^10.0.1"
+  }
 }
