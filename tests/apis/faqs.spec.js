@@ -75,11 +75,18 @@ test("search", async ({request, dataFactory}) => {
     const keywords = ["thyroid success"];
     const page = 1;
     const pageSize = 15;
-    for(let keyword of keywords){
-        let apiResult = await request.get(`/api/kbr/search?searchText=${encodeURIComponent(keyword)}&page=${page}&pageSize=${pageSize}`);
+    for(let word of keywords){
+        let keyword = word.trim().replaceAll(/\s+/g, ' ').toLowerCase();
+        let queryKeyword = `SELECT SearchPoint
+                            FROM Keywords
+                            WHERE EntityType = 6 AND Content = '${keyword}'`;
+        const keyWordBefore = await dataFactory.query(queryKeyword);
+
+        let apiResult = await request.get(`/api/kbr/search?searchText=${encodeURIComponent(word)}&page=${page}&pageSize=${pageSize}`);
         expect(apiResult.ok()).toBeTruthy();
         let source = await apiResult.json();
-        let keywordArr = keyword.replaceAll(/\s+/g, ' ').toLowerCase().replaceAll(",", "").split(" ").filter(c =>c);
+        
+        let keywordArr = keyword.replaceAll(",", "").split(" ").filter(c =>c);
         let selectQuery = `SELECT categoryId = kc.Id, categoryName = kc.Name, description = ka.Description, id = ka.Id, slug = ka.Slug, subCategoryId = ks.Id, subCategoryName = ks.Name, title = ka.Title, typeDescription = 'faqs'`
         let conditionQuery = ` FROM KnowledgeBaseResourcesArticles ka JOIN KnowledgeBaseResourcesSubCategories ks ON ka.CategoryId = ks.Id
             JOIN KnowledgeBaseResourcesCategories kc ON kc.Id = ks.CategoryId
@@ -94,6 +101,10 @@ test("search", async ({request, dataFactory}) => {
         const targetTotal = await dataFactory.query(`SELECT total = COUNT(DISTINCT ka.Id) ${conditionQuery}`);
         expect(targetTotal.recordset[0]?.total).toEqual(source.total);
         expect(target.recordset).toEqual(source.data);
+        if(targetTotal.recordset){
+            const keyWordAfter = await dataFactory.query(queryKeyword);
+            expect(keyWordAfter.recordset[0].SearchPoint - (keyWordBefore.recordset[0].SearchPoint || 0)).toEqual(1);
+        }
     }
 })
 
