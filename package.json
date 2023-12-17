@@ -10,7 +10,9 @@
     "@types/node": "^20.9.0",
     "dotenv": "^16.3.1"
   },
-  "scripts": {},
+  "scripts": {
+    "test:career": "npx playwright test tests/career"
+  },
   "dependencies": {
     "mssql": "^10.0.1"
   }
